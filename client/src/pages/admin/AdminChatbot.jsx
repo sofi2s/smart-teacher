@@ -1,15 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Send, Bot, User, BrainCircuit } from 'lucide-react';
+import { Send, Bot, User, BrainCircuit, Sparkles, MessageSquare } from 'lucide-react';
 
 function AdminChatbot() {
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'أهلاً بك! أنا المساعد الأكاديمي الذكي. يمكنك سؤالي عن أداء الطلاب، والمشاكل الأكاديمية، أو طلب تحليل لطالب معين. (مثال: "حلل أداء الطالب سارة خالد" أو "من هم الطلاب المتعثرون؟")' }
+    { sender: 'bot', text: 'أهلاً بك يا أستاذي! أنا مساعدك الأكاديمي الذكي. يمكنني تحليل مستويات الطلاب، والتنبؤ بمخاطر الغياب والتحصيل، وتزويدك بنصائح مباشرة.\n\nيمكنك كتابة سؤالك مباشرة أو تجربة أحد الأسئلة المقترحة بالأسفل 👇' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [students, setStudents] = useState([]);
   const messagesEndRef = useRef(null);
+
+  const suggestions = [
+    "من هم الطلاب المتعثرون دراسياً؟",
+    "حلل أداء الطالب أحمد محمد",
+    "ما هي المواد الأكثر صعوبة لدى الطلاب؟",
+    "اعطني نصيحة عامة لتحسين الحضور"
+  ];
 
   useEffect(() => {
     fetchStudents();
@@ -28,26 +35,23 @@ function AdminChatbot() {
     }
   };
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const handleSend = async (messageText) => {
+    if (!messageText.trim()) return;
 
-    const userMessage = input.trim();
-    setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
+    setMessages(prev => [...prev, { sender: 'user', text: messageText }]);
     setInput('');
     setLoading(true);
 
     try {
-      // Basic student detection from input
       let studentId = null;
       for (const student of students) {
-        if (userMessage.includes(student.name) || userMessage.includes(student.university_id)) {
+        if (messageText.includes(student.name) || messageText.includes(student.university_id)) {
           studentId = student.id;
           break;
         }
       }
 
-      const response = await axios.post('/chatbot/admin', { message: userMessage, studentId });
+      const response = await axios.post('/chatbot/admin', { message: messageText, studentId });
       setMessages(prev => [...prev, { sender: 'bot', text: response.data.response }]);
     } catch (err) {
       setMessages(prev => [...prev, { sender: 'bot', text: 'عذراً، حدث خطأ أثناء الاتصال بالنظام.' }]);
@@ -57,38 +61,56 @@ function AdminChatbot() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="bg-primary p-4 text-white flex items-center space-x-3 space-x-reverse">
-        <BrainCircuit size={24} />
-        <div>
-          <h3 className="font-bold">المساعد الأكاديمي الذكي</h3>
-          <p className="text-primary-100 text-sm">مبني على قواعد تحليل البيانات</p>
+    <div className="flex flex-col h-[calc(100vh-10rem)] bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden relative">
+      {/* Top Header Panel */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 text-white flex items-center justify-between border-b border-slate-800">
+        <div className="flex items-center space-x-3 space-x-reverse">
+          <div className="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center border border-indigo-500/30">
+            <BrainCircuit size={22} className="animate-pulse" />
+          </div>
+          <div>
+            <h3 className="font-bold text-sm">المساعد الأكاديمي الذكي (AI Brain)</h3>
+            <p className="text-[10px] text-slate-400">محلل البيانات وخبير التنبؤ السلوكي</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2 space-x-reverse">
+          <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span>
+          <span className="text-[10px] bg-slate-800/80 px-2.5 py-1 rounded-full text-slate-300 font-bold border border-slate-700/50">قاعدة ذكية نشطة</span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      {/* Chat Messages Body */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-slate-50/50">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`flex items-start max-w-[80%] space-x-2 space-x-reverse ${msg.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === 'user' ? 'bg-blue-100 text-blue-600 mr-2' : 'bg-primary/10 text-primary ml-2'}`}>
-                {msg.sender === 'user' ? <User size={18} /> : <Bot size={18} />}
+            <div className={`flex items-start max-w-[75%] space-x-3 space-x-reverse ${msg.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                msg.sender === 'user' 
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10' 
+                  : 'bg-white border border-slate-200 text-indigo-600 shadow-sm'
+              }`}>
+                {msg.sender === 'user' ? <User size={16} /> : <Bot size={16} />}
               </div>
-              <div className={`p-4 rounded-2xl ${msg.sender === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none shadow-sm'}`}>
-                <div className="whitespace-pre-wrap leading-relaxed">{msg.text}</div>
+              <div className={`p-4 rounded-3xl shadow-sm ${
+                msg.sender === 'user' 
+                  ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-tr-none' 
+                  : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none'
+              }`}>
+                <div className="whitespace-pre-wrap leading-relaxed text-xs font-medium">{msg.text}</div>
               </div>
             </div>
           </div>
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="flex items-start space-x-2 space-x-reverse">
-              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center ml-2">
-                <Bot size={18} />
+            <div className="flex items-start space-x-3 space-x-reverse">
+              <div className="w-9 h-9 rounded-2xl bg-white border border-slate-200 text-indigo-600 flex items-center justify-center shadow-sm">
+                <Bot size={16} />
               </div>
-              <div className="bg-white border border-gray-100 p-4 rounded-2xl rounded-tl-none shadow-sm flex space-x-1 space-x-reverse">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              <div className="bg-white border border-slate-100 p-4 rounded-3xl rounded-tl-none shadow-sm flex items-center space-x-1.5 space-x-reverse">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
               </div>
             </div>
           </div>
@@ -96,12 +118,31 @@ function AdminChatbot() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 bg-white border-t border-gray-100">
-        <form onSubmit={handleSend} className="flex space-x-2 space-x-reverse">
+      {/* Suggestion Chips and Input Container */}
+      <div className="p-5 bg-white border-t border-slate-100 space-y-4">
+        {/* Suggestion Chips */}
+        {messages.length === 1 && (
+          <div className="flex flex-wrap gap-2 justify-start items-center">
+            <Sparkles size={14} className="text-amber-500 animate-spin" />
+            <span className="text-[10px] font-bold text-slate-400 mr-1 ml-2">أسئلة مقترحة:</span>
+            {suggestions.map((sug, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSend(sug)}
+                className="text-[10px] font-bold text-indigo-700 bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100/50 px-3.5 py-1.5 rounded-full smooth-transition hover:scale-[1.02]"
+              >
+                {sug}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Input Bar */}
+        <form onSubmit={(e) => { e.preventDefault(); handleSend(input); }} className="flex space-x-3 space-x-reverse">
           <input
             type="text"
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-            placeholder="اسأل المساعد الذكي عن الأداء الأكاديمي للطلاب..."
+            className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-xs font-semibold placeholder-slate-400 smooth-transition"
+            placeholder="اسأل المساعد الذكي عن الأداء الأكاديمي للطلاب، مثلاً: حلل أداء الطالب أحمد..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
@@ -109,9 +150,9 @@ function AdminChatbot() {
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center"
+            className="bg-indigo-600 hover:bg-indigo-500 text-white px-7 rounded-2xl hover:shadow-lg hover:shadow-indigo-600/10 transition-all disabled:opacity-50 flex items-center justify-center"
           >
-            <Send size={20} className={document.documentElement.dir === 'rtl' ? 'rotate-180' : ''} />
+            <Send size={18} className={document.documentElement.dir === 'rtl' ? 'rotate-180' : ''} />
           </button>
         </form>
       </div>
