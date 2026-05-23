@@ -12,7 +12,7 @@ import AdminLayout from './layouts/AdminLayout';
 import StudentLayout from './layouts/StudentLayout';
 
 // Axios global setup
-axios.defaults.baseURL = 'http://localhost:5000/api';
+axios.defaults.baseURL = window.location.port === '5173' ? 'http://localhost:5000/api' : '/api';
 
 function App() {
   const [user, setUser] = useState(null);

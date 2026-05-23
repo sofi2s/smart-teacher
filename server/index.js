@@ -32,6 +32,15 @@ async function startServer() {
       res.json({ status: 'ok', message: 'Smart Teacher API is running' });
     });
 
+    // Serve static files from React build directory
+    const distPath = path.join(__dirname, '../client/dist');
+    app.use(express.static(distPath));
+    
+    // Support React Router browser history routing (Single Page App fallback)
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+
     app.listen(PORT, () => {
       console.log(`\n🚀 Smart Teacher Server running on http://localhost:${PORT}`);
       console.log(`📊 API Health: http://localhost:${PORT}/api/health\n`);

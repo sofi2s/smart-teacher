@@ -11,5 +11,12 @@
     "sql.js": "^1.10.2",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2"
+  },
+  "bin": "index.js",
+  "pkg": {
+    "assets": [
+      "../client/dist/**/*",
+      "node_modules/sql.js/dist/sql-wasm.wasm"
+    ]
   }
 }

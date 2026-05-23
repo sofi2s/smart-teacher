@@ -2,7 +2,9 @@ const initSqlJs = require('sql.js');
 const fs = require('fs');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, 'database.sqlite');
+const DB_PATH = process.pkg 
+  ? path.join(path.dirname(process.execPath), 'database.sqlite')
+  : path.join(__dirname, 'database.sqlite');
 let dbInstance = null;
 
 async function initDB() {
